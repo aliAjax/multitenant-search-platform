@@ -15,19 +15,39 @@ type Index struct {
 	terms    map[string]map[string]platform.Posting
 	docs     map[string]platform.Document
 	deleted  map[string]bool
+	// docTerms maps a document ID to the set of term keys it contributes to,
+	// so a document's stale postings can be removed without scanning every term.
+	docTerms map[string]map[string]struct{}
 }
 
 func New(a analysis.Analyzer) *Index {
-	return &Index{analyzer: a, terms: map[string]map[string]platform.Posting{}, docs: map[string]platform.Document{}, deleted: map[string]bool{}}
+	return &Index{
+		analyzer: a,
+		terms:    map[string]map[string]platform.Posting{},
+		docs:     map[string]platform.Document{},
+		deleted:  map[string]bool{},
+		docTerms: map[string]map[string]struct{}{},
+	}
 }
 func (i *Index) Add(_ context.Context, d platform.Document) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
+	i.addLocked(d)
+}
+
+// addLocked indexes a document's fields. The caller must hold i.mu.
+func (i *Index) addLocked(d platform.Document) {
 	i.docs[d.ID] = d
+	keys := i.docTerms[d.ID]
+	if keys == nil {
+		keys = map[string]struct{}{}
+		i.docTerms[d.ID] = keys
+	}
 	for field, val := range d.Data {
 		if s, ok := val.(string); ok {
 			for _, t := range i.analyzer.Analyze(s) {
 				k := field + "\x00" + t.Term
+				keys[k] = struct{}{}
 				m := i.terms[k]
 				if m == nil {
 					m = map[string]platform.Posting{}
@@ -43,11 +63,32 @@ func (i *Index) Add(_ context.Context, d platform.Document) {
 	}
 }
 
-// ReplaceDocument is used by ingestion paths that need to rebuild a posting list.
-func (i *Index) ReplaceDocument(ctx context.Context, d platform.Document) {
-	i.Add(ctx, d)
+// removeLocked drops a document and every posting it contributed. It is the
+// inverse of addLocked and is the reason old terms stop matching on reindex.
+// The caller must hold i.mu.
+func (i *Index) removeLocked(id string) {
+	delete(i.docs, id)
+	delete(i.deleted, id)
+	for k := range i.docTerms[id] {
+		if m := i.terms[k]; m != nil {
+			delete(m, id)
+			if len(m) == 0 {
+				delete(i.terms, k)
+			}
+		}
+	}
+	delete(i.docTerms, id)
 }
-func (i *Index) Remove(id string) { i.mu.Lock(); i.deleted[id] = true; i.mu.Unlock() }
+
+// ReplaceDocument reindexes an existing document by removing its stale postings
+// before adding the new ones, so terms that no longer appear stop matching.
+func (i *Index) ReplaceDocument(_ context.Context, d platform.Document) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	i.removeLocked(d.ID)
+	i.addLocked(d)
+}
+func (i *Index) Remove(id string) { i.mu.Lock(); defer i.mu.Unlock(); i.removeLocked(id) }
 func (i *Index) All() []platform.Document {
 	i.mu.RLock()
 	defer i.mu.RUnlock()

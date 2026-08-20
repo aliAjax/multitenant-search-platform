@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/example/multitenant-search/internal/index"
 	"github.com/example/multitenant-search/internal/platform"
+	"sync"
 	"time"
 )
 
 type Service struct {
 	store   *platform.Store
+	mu      sync.RWMutex
 	indexes map[string]*index.Index
 	clock   platform.Clock
 }
@@ -18,6 +20,16 @@ func NewService(s *platform.Store, c platform.Clock) *Service {
 	return &Service{store: s, indexes: map[string]*index.Index{}, clock: c}
 }
 func (s *Service) EnsureIndex(id string) *index.Index {
+	s.mu.RLock()
+	if i := s.indexes[id]; i != nil {
+		s.mu.RUnlock()
+		return i
+	}
+	s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// Re-check under the write lock: another goroutine may have created the
+	// index between the read unlock and this acquisition.
 	if i := s.indexes[id]; i != nil {
 		return i
 	}
@@ -63,7 +75,9 @@ func (s *Service) Put(ctx context.Context, d *platform.Document) error {
 	if e := s.store.PutDoc(ctx, d); e != nil {
 		return fmt.Errorf("put document: %w", e)
 	}
-	s.EnsureIndex(d.CollectionID).Add(ctx, *d)
+	// Replace rather than accumulate postings so re-indexing the same ID drops
+	// terms that no longer appear in the document.
+	s.EnsureIndex(d.CollectionID).ReplaceDocument(ctx, *d)
 	return nil
 }
 func (s *Service) Delete(ctx context.Context, id string) error {
@@ -74,7 +88,7 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 	if e = s.store.DeleteDoc(ctx, id); e != nil {
 		return e
 	}
-	if i := s.indexes[d.CollectionID]; i != nil {
+	if i := s.EnsureIndex(d.CollectionID); i != nil {
 		i.Remove(id)
 	}
 	return nil
