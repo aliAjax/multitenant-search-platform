@@ -40,11 +40,16 @@ func (s *Service) Get(ctx context.Context, id string) (*platform.Tenant, error) 
 func (s *Service) GetWithRetry(ctx context.Context, id string) (*platform.Tenant, error) {
 	var last error
 	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			if err := ctx.Err(); err != nil {
+				return nil, fmt.Errorf("tenant lookup: %w", err)
+			}
+		}
 		t, e := s.Get(ctx, id)
 		if e == nil {
 			return t, nil
 		}
-		if errors.Is(e, platform.ErrNotFound) && attempt > 1 {
+		if errors.Is(e, platform.ErrNotFound) {
 			return nil, e
 		}
 		last = e
