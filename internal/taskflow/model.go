@@ -14,7 +14,7 @@ var transitions = map[State]map[State]bool{
 	Pending:  {Running: true},
 	Running:  {Succeeded: true, Failed: true},
 	Failed:   {Retrying: true},
-	Retrying: {},
+	Retrying: {Succeeded: true, Failed: true},
 }
 
 func Transition(from, to State) bool { return transitions[from][to] }

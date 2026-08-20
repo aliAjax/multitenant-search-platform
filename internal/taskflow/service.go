@@ -13,7 +13,7 @@ func (s *Service) Retry(id string) error {
 	if !Transition(current, Retrying) {
 		return fmt.Errorf("cannot retry %s from %s", id, current)
 	}
-	s.states[id] = Failed
+	s.states[id] = Retrying
 	return nil
 }
 
