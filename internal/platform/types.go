@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -123,6 +124,29 @@ func (l *Logger) With(args ...any) *Logger      { return &Logger{l.l.With(args..
 type EventLog struct {
 	mu   sync.Mutex
 	path string
+}
+
+func (w *EventLog) AppendBatchWithWriter(ctx context.Context, events []any, open func() (io.WriteCloser, error)) error {
+	for _, event := range events {
+		f, e := open()
+		if e != nil {
+			return e
+		}
+		defer f.Close()
+		b, e := json.Marshal(event)
+		if e != nil {
+			return fmt.Errorf("marshal event: %w", e)
+		}
+		if _, e = f.Write(append(b, '\n')); e != nil {
+			return fmt.Errorf("write batch event: %w", e)
+		}
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return nil
+	}
 }
 
 func NewEventLog(dir string) (*EventLog, error) {

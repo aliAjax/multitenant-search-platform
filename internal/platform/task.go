@@ -75,3 +75,12 @@ func (r *TaskRunner) Run(ctx context.Context, id string, fn func(context.Context
 	}
 	return r.Update(id, TaskDone, 100, nil)
 }
+
+func (r *TaskRunner) RunWithFinalizer(ctx context.Context, id string, fn func(context.Context) error, finalizer func() error) (err error) {
+	defer func() {
+		if e := finalizer(); e != nil {
+			err = e
+		}
+	}()
+	return fn(ctx)
+}
