@@ -2,6 +2,7 @@ package tenant
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/example/multitenant-search/internal/platform"
 	"sync"
@@ -34,4 +35,19 @@ func (s *Service) Get(ctx context.Context, id string) (*platform.Tenant, error) 
 		return nil, fmt.Errorf("get tenant: %w", e)
 	}
 	return t, nil
+}
+
+func (s *Service) GetWithRetry(ctx context.Context, id string) (*platform.Tenant, error) {
+	var last error
+	for attempt := 0; attempt < 3; attempt++ {
+		t, e := s.Get(ctx, id)
+		if e == nil {
+			return t, nil
+		}
+		if errors.Is(e, platform.ErrNotFound) && attempt > 1 {
+			return nil, e
+		}
+		last = e
+	}
+	return nil, fmt.Errorf("tenant lookup retries exhausted: %w", last)
 }

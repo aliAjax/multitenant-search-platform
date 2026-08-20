@@ -74,7 +74,7 @@ func (s *Store) GetTenant(ctx context.Context, id string) (*Tenant, error) {
 	defer s.mu.RUnlock()
 	t, ok := s.tenants[id]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("tenant lookup: %v", ErrNotFound)
 	}
 	return &t, nil
 }
@@ -101,7 +101,7 @@ func (s *Store) GetCollection(ctx context.Context, id string) (*Collection, erro
 	defer s.mu.RUnlock()
 	c, ok := s.collections[id]
 	if !ok {
-		return nil, ErrNotFound
+		return nil, fmt.Errorf("collection lookup: %v", ErrNotFound)
 	}
 	return &c, nil
 }
