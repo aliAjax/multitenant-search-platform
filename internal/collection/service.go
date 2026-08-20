@@ -2,6 +2,7 @@ package collection
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/example/multitenant-search/internal/platform"
 )
@@ -46,4 +47,18 @@ func (s *Service) PublishMapping(ctx context.Context, id string, next map[string
 		return nil, fmt.Errorf("publish mapping: %w", e)
 	}
 	return c, nil
+}
+
+func (s *Service) PublishMappingChecked(ctx context.Context, id string, next map[string]platform.FieldMapping) (*platform.Collection, error) {
+	c, e := s.repo.GetCollection(ctx, id)
+	if e != nil {
+		return nil, e
+	}
+	if e = ValidateAndExplain(c.Mappings, next); e != nil {
+		if errors.Is(e, platform.ErrConflict) {
+			return nil, fmt.Errorf("mapping conflict: %w", e)
+		}
+		return nil, e
+	}
+	return s.PublishMapping(ctx, id, next)
 }
