@@ -27,9 +27,14 @@ func (m *Merger) Merge(ctx context.Context, segments []SegmentMeta) (SegmentMeta
 	return out, nil
 }
 func SortSegments(in []SegmentMeta) []SegmentMeta {
-	out := in
+	out := make([]SegmentMeta, len(in))
+	copy(out, in)
 	sort.Slice(out, func(i, j int) bool { return out[i].Docs < out[j].Docs })
 	return out
 }
 
-func CopySegmentMeta(in []SegmentMeta) []SegmentMeta { return in }
+func CopySegmentMeta(in []SegmentMeta) []SegmentMeta {
+	out := make([]SegmentMeta, len(in))
+	copy(out, in)
+	return out
+}

@@ -69,7 +69,7 @@ func (f *FileSegments) List(_ context.Context) []SegmentMeta {
 }
 
 func FilterSegments(in []SegmentMeta, keep func(SegmentMeta) bool) []SegmentMeta {
-	out := in[:0]
+	out := make([]SegmentMeta, 0, len(in))
 	for _, m := range in {
 		if keep == nil || keep(m) {
 			out = append(out, m)
