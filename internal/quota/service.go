@@ -13,7 +13,16 @@ type Limiter struct {
 	limits map[string]int
 }
 
-func New() *Limiter                     { return &Limiter{used: map[string]int{}, limits: map[string]int{}} }
+func New() *Limiter { return &Limiter{used: map[string]int{}, limits: map[string]int{}} }
+func OptionalLimiter(enabled bool) *Limiter {
+	if !enabled {
+		return nil
+	}
+	return New()
+}
+func UseLimiter(ctx context.Context, l *Limiter, id string, n int) error {
+	return l.Take(ctx, id, n)
+}
 func (l *Limiter) Set(id string, n int) { l.mu.Lock(); l.limits[id] = n; l.mu.Unlock() }
 func (l *Limiter) Take(ctx context.Context, id string, n int) error {
 	select {

@@ -20,7 +20,8 @@ type Manager struct {
 	clock platform.Clock
 }
 
-func NewManager(c platform.Clock) *Manager { return &Manager{items: map[string]Budget{}, clock: c} }
+func NewManager(c platform.Clock) *Manager     { return &Manager{items: map[string]Budget{}, clock: c} }
+func NewZeroManager(c platform.Clock) *Manager { return &Manager{clock: c} }
 func (m *Manager) Configure(t string, n int, d time.Duration) {
 	m.mu.Lock()
 	m.items[t] = Budget{Tenant: t, Limit: n, ResetAt: m.clock.Now().Add(d)}
