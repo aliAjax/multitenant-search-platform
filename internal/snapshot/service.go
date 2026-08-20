@@ -18,8 +18,8 @@ type Service struct {
 func New(s *platform.Store, dir string) *Service  { return &Service{store: s, dir: dir} }
 func (s *Service) SetContext(ctx context.Context) { s.ctx = ctx }
 func (s *Service) CreateWithContext(ctx context.Context) (string, error) {
-	if s.ctx != nil {
-		ctx = s.ctx
+	if ctx == nil {
+		ctx = context.Background()
 	}
 	return s.Create(ctx)
 }

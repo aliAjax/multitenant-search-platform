@@ -42,7 +42,7 @@ func (s LineRPC) ServeContext(ctx context.Context, l net.Listener) error {
 		if e != nil {
 			return e
 		}
-		go s.handleContext(context.Background(), c)
+		go s.handleContext(ctx, c)
 	}
 }
 
@@ -59,7 +59,7 @@ func (s LineRPC) handleContext(parent context.Context, c net.Conn) {
 		if e := dec.Decode(&req); e != nil {
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), s.Timeout)
+		ctx, cancel := context.WithTimeout(parent, s.Timeout)
 		res, e := s.Handler.Handle(ctx, req)
 		cancel()
 		if e != nil {
