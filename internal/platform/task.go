@@ -77,10 +77,12 @@ func (r *TaskRunner) Run(ctx context.Context, id string, fn func(context.Context
 }
 
 func (r *TaskRunner) RunWithFinalizer(ctx context.Context, id string, fn func(context.Context) error, finalizer func() error) (err error) {
-	defer func() {
-		if e := finalizer(); e != nil {
-			err = e
-		}
-	}()
-	return fn(ctx)
+	err = fn(ctx)
+	// Run the finalizer unconditionally, but never let its error clobber a
+	// work error that already occurred — the original failure is what callers
+	// need to see.
+	if e := finalizer(); e != nil && err == nil {
+		err = e
+	}
+	return err
 }

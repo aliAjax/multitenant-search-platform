@@ -132,13 +132,20 @@ func (w *EventLog) AppendBatchWithWriter(ctx context.Context, events []any, open
 		if e != nil {
 			return e
 		}
-		defer f.Close()
+		// Close this writer before opening the next one so handles do not
+		// accumulate across the batch (a loop-scoped defer would keep every
+		// writer open until the function returns).
 		b, e := json.Marshal(event)
 		if e != nil {
+			_ = f.Close()
 			return fmt.Errorf("marshal event: %w", e)
 		}
 		if _, e = f.Write(append(b, '\n')); e != nil {
+			_ = f.Close()
 			return fmt.Errorf("write batch event: %w", e)
+		}
+		if e = f.Close(); e != nil {
+			return fmt.Errorf("close batch event: %w", e)
 		}
 	}
 	select {
