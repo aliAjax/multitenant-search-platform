@@ -24,11 +24,11 @@ func NewPipeline(stop []string, syn map[string][]string, stem bool) Pipeline {
 
 func OptionalPipeline(enabled bool) Analyzer {
 	if !enabled {
-		var p *Pipeline
-		return p
+		// Return a nil interface (not a nil *Pipeline boxed in a non-nil
+		// interface), so callers can distinguish "disabled" from "configured".
+		return nil
 	}
-	p := NewPipeline(nil, nil, false)
-	return p
+	return NewPipeline(nil, nil, false)
 }
 
 var wordRE = regexp.MustCompile(`[^\pL\pN]+`)

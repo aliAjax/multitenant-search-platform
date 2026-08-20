@@ -36,7 +36,10 @@ func (r *Registry) Analyze(name string, version int, text string) []platform.Tok
 
 func (r *Registry) AnalyzeOrDefault(name string, version int, text string) []platform.Token {
 	a, ok := r.Get(name, version)
-	if !ok {
+	// Fall back to a default pipeline when the analyzer is absent OR was
+	// registered as a nil interface (e.g. OptionalPipeline(false)). Calling a
+	// value method on a nil boxed pointer would panic, so guard both cases.
+	if !ok || a == nil {
 		a = NewPipeline(nil, nil, false)
 	}
 	return a.Analyze(text)
