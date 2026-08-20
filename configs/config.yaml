@@ -1,0 +1,6 @@
+http_addr: ":8086"
+grpc_addr: ":9096"
+data_dir: "./data"
+query_budget: 10000
+max_body: 4194304
+log_level: "info"

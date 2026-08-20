@@ -1,0 +1,6 @@
+run:
+	go run ./cmd/searchd
+test:
+	go test ./...
+vet:
+	go vet ./...

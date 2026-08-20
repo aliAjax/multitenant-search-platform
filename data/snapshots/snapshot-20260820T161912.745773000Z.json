@@ -1,0 +1,52 @@
+{
+  "collections": {
+    "c-b073b7d26c84e107": {
+      "id": "c-b073b7d26c84e107",
+      "tenant_id": "t-a8f7bed9158207b8",
+      "name": "docs",
+      "mappings": {
+        "kind": {
+          "name": "kind",
+          "type": "keyword"
+        },
+        "title": {
+          "name": "title",
+          "type": "text"
+        }
+      },
+      "mapping_version": 1,
+      "shards": 1,
+      "replicas": 0,
+      "read_only": false,
+      "created_at": "2026-08-20T16:19:12.713746Z"
+    }
+  },
+  "docs": {
+    "doc-1d8b5b7b38d170fc": {
+      "id": "doc-1d8b5b7b38d170fc",
+      "tenant_id": "t-a8f7bed9158207b8",
+      "collection_id": "c-b073b7d26c84e107",
+      "data": {
+        "kind": "guide",
+        "title": "Go search platform"
+      },
+      "version": 1,
+      "deleted": false,
+      "updated_at": "2026-08-20T16:19:12.727779Z"
+    }
+  },
+  "tenants": {
+    "t-a8f7bed9158207b8": {
+      "id": "t-a8f7bed9158207b8",
+      "name": "acme2",
+      "quota": 1000,
+      "created_at": "2026-08-20T16:19:12.697679Z"
+    },
+    "t-db11b6b128e30302": {
+      "id": "t-db11b6b128e30302",
+      "name": "acme",
+      "quota": 1000,
+      "created_at": "2026-08-20T16:16:54.021769Z"
+    }
+  }
+}
