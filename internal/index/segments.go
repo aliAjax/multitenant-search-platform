@@ -67,6 +67,17 @@ func (f *FileSegments) List(_ context.Context) []SegmentMeta {
 	sort.Slice(o, func(i, j int) bool { return o[i].CreatedAt.Before(o[j].CreatedAt) })
 	return o
 }
+
+func FilterSegments(in []SegmentMeta, keep func(SegmentMeta) bool) []SegmentMeta {
+	out := in[:0]
+	for _, m := range in {
+		if keep == nil || keep(m) {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
 func BuildMeta(docs []platform.Document, terms int) (SegmentMeta, []byte, error) {
 	b, e := json.Marshal(docs)
 	if e != nil {
