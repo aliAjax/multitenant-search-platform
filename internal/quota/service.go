@@ -21,9 +21,19 @@ func OptionalLimiter(enabled bool) *Limiter {
 	return New()
 }
 func UseLimiter(ctx context.Context, l *Limiter, id string, n int) error {
+	if l == nil {
+		return nil
+	}
 	return l.Take(ctx, id, n)
 }
-func (l *Limiter) Set(id string, n int) { l.mu.Lock(); l.limits[id] = n; l.mu.Unlock() }
+func (l *Limiter) Set(id string, n int) {
+	if l == nil {
+		return
+	}
+	l.mu.Lock()
+	l.limits[id] = n
+	l.mu.Unlock()
+}
 func (l *Limiter) Take(ctx context.Context, id string, n int) error {
 	select {
 	case <-ctx.Done():
@@ -39,6 +49,9 @@ func (l *Limiter) Take(ctx context.Context, id string, n int) error {
 	return nil
 }
 func (l *Limiter) Release(id string, n int) {
+	if l == nil {
+		return
+	}
 	l.mu.Lock()
 	l.used[id] -= n
 	if l.used[id] < 0 {
