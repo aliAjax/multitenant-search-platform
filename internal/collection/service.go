@@ -2,7 +2,6 @@ package collection
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/example/multitenant-search/internal/platform"
 )
@@ -55,10 +54,7 @@ func (s *Service) PublishMappingChecked(ctx context.Context, id string, next map
 		return nil, e
 	}
 	if e = ValidateAndExplain(c.Mappings, next); e != nil {
-		if errors.Is(e, platform.ErrConflict) {
-			return nil, fmt.Errorf("mapping conflict: %w", e)
-		}
-		return nil, e
+		return nil, classifyMappingError(e)
 	}
 	return s.PublishMapping(ctx, id, next)
 }

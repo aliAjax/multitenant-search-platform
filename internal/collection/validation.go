@@ -26,7 +26,7 @@ func Compatible(old, next map[string]platform.FieldMapping) error {
 
 func ValidateAndExplain(old, next map[string]platform.FieldMapping) error {
 	if e := Compatible(old, next); e != nil {
-		return fmt.Errorf("mapping compatibility: %v", e)
+		return fmt.Errorf("mapping compatibility: %w", e)
 	}
 	if e := ValidateMapping(next); e != nil {
 		return fmt.Errorf("mapping validation: %w", e)

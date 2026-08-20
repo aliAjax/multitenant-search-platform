@@ -12,7 +12,7 @@ func classifyMappingError(e error) error {
 		return nil
 	}
 	if errors.Is(e, platform.ErrConflict) {
-		return fmt.Errorf("mapping conflict: %v", e)
+		return fmt.Errorf("mapping conflict: %w", e)
 	}
-	return fmt.Errorf("mapping rejected: %v", e)
+	return fmt.Errorf("mapping rejected: %w", e)
 }
