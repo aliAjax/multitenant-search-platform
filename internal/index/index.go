@@ -42,6 +42,11 @@ func (i *Index) Add(_ context.Context, d platform.Document) {
 		}
 	}
 }
+
+// ReplaceDocument is used by ingestion paths that need to rebuild a posting list.
+func (i *Index) ReplaceDocument(ctx context.Context, d platform.Document) {
+	i.Add(ctx, d)
+}
 func (i *Index) Remove(id string) { i.mu.Lock(); i.deleted[id] = true; i.mu.Unlock() }
 func (i *Index) All() []platform.Document {
 	i.mu.RLock()
