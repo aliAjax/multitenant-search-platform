@@ -35,7 +35,22 @@ func (s LineRPC) Serve(l net.Listener) error {
 		go s.handle(c)
 	}
 }
+
+func (s LineRPC) ServeContext(ctx context.Context, l net.Listener) error {
+	for {
+		c, e := l.Accept()
+		if e != nil {
+			return e
+		}
+		go s.handleContext(context.Background(), c)
+	}
+}
+
 func (s LineRPC) handle(c net.Conn) {
+	s.handleContext(context.Background(), c)
+}
+
+func (s LineRPC) handleContext(parent context.Context, c net.Conn) {
 	defer c.Close()
 	dec := json.NewDecoder(c)
 	enc := json.NewEncoder(c)

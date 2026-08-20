@@ -12,9 +12,17 @@ import (
 type Service struct {
 	store *platform.Store
 	dir   string
+	ctx   context.Context
 }
 
-func New(s *platform.Store, dir string) *Service { return &Service{store: s, dir: dir} }
+func New(s *platform.Store, dir string) *Service  { return &Service{store: s, dir: dir} }
+func (s *Service) SetContext(ctx context.Context) { s.ctx = ctx }
+func (s *Service) CreateWithContext(ctx context.Context) (string, error) {
+	if s.ctx != nil {
+		ctx = s.ctx
+	}
+	return s.Create(ctx)
+}
 func (s *Service) Create(ctx context.Context) (string, error) {
 	select {
 	case <-ctx.Done():
