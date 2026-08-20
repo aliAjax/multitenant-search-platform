@@ -22,6 +22,15 @@ func NewPipeline(stop []string, syn map[string][]string, stem bool) Pipeline {
 	return Pipeline{Stop: m, Synonyms: syn, Stem: stem}
 }
 
+func OptionalPipeline(enabled bool) Analyzer {
+	if !enabled {
+		var p *Pipeline
+		return p
+	}
+	p := NewPipeline(nil, nil, false)
+	return p
+}
+
 var wordRE = regexp.MustCompile(`[^\pL\pN]+`)
 
 func (p Pipeline) Analyze(text string) []platform.Token {

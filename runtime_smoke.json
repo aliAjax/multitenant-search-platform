@@ -1,0 +1,13 @@
+{
+  "mode": "service",
+  "start": "go run ./cmd/searchd",
+  "workdir": ".",
+  "env": {
+    "CGO_ENABLED": "0",
+    "SEARCH_HTTP_ADDR": "127.0.0.1:18103",
+    "SEARCH_DATA_DIR": "/tmp/multitenant-search-data-003"
+  },
+  "ready_url": "http://127.0.0.1:18103/healthz",
+  "ready_status": [200],
+  "startup_timeout": 20
+}

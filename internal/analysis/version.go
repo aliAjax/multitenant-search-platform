@@ -33,3 +33,11 @@ func (r *Registry) Analyze(name string, version int, text string) []platform.Tok
 	}
 	return a.Analyze(text)
 }
+
+func (r *Registry) AnalyzeOrDefault(name string, version int, text string) []platform.Token {
+	a, ok := r.Get(name, version)
+	if !ok {
+		a = NewPipeline(nil, nil, false)
+	}
+	return a.Analyze(text)
+}
